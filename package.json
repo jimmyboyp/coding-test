@@ -1,8 +1,28 @@
 {
-  "name": "test",
+  "name": "coding-challenge",
   "version": "0.0.1",
-  "description": "API to help enforce limitations on concurrent media streams",
-  "main": "index.js",
-  "author": "James Peiris",
-  "license": "MIT"
+  "description": "Wrapper around multiple streaming services. This wrapper wouldn't exist in reality, and exists more for brevity / co-located code.",
+  "author": {
+    "name": "James Peiris",
+    "email": "jamespeiris@hotmail.com"
+  },
+  "license": "MIT",
+  "engines": {
+    "npm": "^6.9.0",
+    "node": "^10.15.3"
+  },
+  "scripts": {
+    "install:all": "yarn install:auth && yarn install:stream-management && yarn install:stream",
+    "install:auth": "cd services/auth-server && pwd && yarn",
+    "install:stream-management": "cd services/stream-management-server && yarn",
+    "install:stream": "cd services/stream-server && yarn",
+    "nuke:deps": "yarn nuke:deps:auth && yarn nuke:deps:stream-management && yarn nuke:deps:stream",
+    "nuke:deps:auth": "rm -rf services/auth-server/node_modules",
+    "nuke:deps:stream-management": "rm -rf services/stream-management-server/node_modules",
+    "nuke:deps:stream": "rm -rf services/stream-server/node_modules",
+    "test": "yarn test:auth && yarn test:stream-management && yarn test:stream",
+    "test:auth": "cd services/auth-server && yarn test",
+    "test:stream-management": "cd services/stream-management-server && yarn test",
+    "test:stream": "cd services/stream-server && yarn test"
+  }
 }
