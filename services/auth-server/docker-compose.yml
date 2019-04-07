@@ -20,4 +20,7 @@ services:
     ports:
       - "4002:3306"
     environment:
-      - MYSQL_ROOT_PASSWORD=would_normally_obtain_from_env_file
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
