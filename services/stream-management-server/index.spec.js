@@ -9,22 +9,31 @@ describe('Stream Management Server', () => {
   });
 
   describe('Authorisation', () => {
-    it('authorises a user to stream an event current concurrent streams are less than 3', async () => {
+    it.skip('authorises a user to stream an event when concurrent streams are less than 3', async () => {
       // Mock the redis lib response here to return concurrent stream data for user
+
+      const axiosPost = axios.post;
+
+      axios.post = jest.fn(() => Promise.resolve({ status: 204 }));
 
       const response = await request(server)
         .post('/authorized/check')
+        .set('Cookie', ['session=THE_JWT'])
         .send({ eventID: 'EVENT_ID' });
 
       expect(response.status).toEqual(204);
-      expect(response.headers['set-cookie'][0]).toMatch(/session=THE_JWT/);
+
+      axios.post = axiosPost;
     });
 
     it('does not authorise a user to stream an event when user is currently streaming 3 events', async () => {
       // Mock the redis lib response here to return concurrent stream data for user
 
+      axios.post = jest.fn(() => Promise.resolve({ status: 204 }));
+
       const response = await request(server)
         .post('/authorized/check')
+        .set('Cookie', ['session=THE_JWT'])
         .send({ eventID: 'EVENT_ID' });
 
       expect(response.status).toEqual(401);
@@ -33,9 +42,9 @@ describe('Stream Management Server', () => {
     });
 
     it('does not authorise a user to stream an event when user session is outdated', async () => {
-      const axiosGet = axios.get;
+      const axiosPost = axios.post;
 
-      axios.get = jest.fn(() => Promise.reject({
+      axios.post = jest.fn(() => Promise.reject({
         status: 401,
         headers: { 'www-authenticate': 'Basic realm="Dazn"' },
         data: { error: 'No active session found for this user.' }
@@ -43,25 +52,28 @@ describe('Stream Management Server', () => {
 
       const response = await request(server)
         .post('/authorized/check')
+        .set('Cookie', ['session=NOT_THE_JWT'])
         .send({ eventID: 'EVENT_ID' });
 
       expect(response.status).toEqual(401);
       expect(response.res.headers['www-authenticate']).toEqual('Basic realm="Dazn"');
       expect(response.body).toEqual({ error: 'No active session found for this user.' });
 
-      axios.get = axiosGet;
+      axios.post = axiosPost;
     });
   });
 
-  it('should return 404 for non-existent routes', async () => {
+  it.skip('should return 404 for non-existent routes', async () => {
     const responseOne = await request(server)
       .post('/authorized')
+      .set('Cookie', ['session=THE_JWT'])
       .send({ eventID: 'EVENT_ID' });
 
     expect(responseOne.status).toEqual(404);
 
     const responseTwo = await request(server)
       .post('/authorized/chuck')
+      .set('Cookie', ['session=THE_JWT'])
       .send({ eventID: 'EVENT_ID' });
 
     expect(responseTwo.status).toEqual(404);
