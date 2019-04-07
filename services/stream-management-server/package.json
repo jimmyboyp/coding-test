@@ -15,15 +15,17 @@
     "axios": "^0.18.0",
     "koa": "^2.7.0",
     "koa-cookie": "^1.0.0",
-    "koa-router": "^7.4.0"
+    "koa-router": "^7.4.0",
+    "redis": "^2.8.0"
   },
   "devDependencies": {
     "jest": "^24.7.1",
     "supertest": "^4.0.2"
   },
   "scripts": {
+    "build": "docker-compose build",
+    "start:dev": "docker-compose up",
     "start": "NODE_ENV=production node index.js",
-    "start:dev": "NODE_ENV=development node index.js",
     "test": "jest",
     "test:watch": "jest --watch --onlyChanged"
   }
