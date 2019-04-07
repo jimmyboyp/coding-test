@@ -70,4 +70,25 @@ router.post(
 
 app.use(router.routes());
 
+app.on('error', (error, ctx) => {
+  console.error(error);
+});
+
+console.info(`App listening on ${appPort}`);
+
+axios.post(
+  `${authAPI}/session/check`,
+  {
+    username: 'john',
+    password: 'johns_password'
+  },
+  {
+    headers: {
+      Cookie: 'session=THE_JWT'
+    }
+  }
+)
+.then(() => console.log('axios request made'))
+.catch((err) => console.error('axios error', err))
+
 module.exports = app.listen(appPort);

@@ -24,6 +24,7 @@
     "supertest": "^4.0.2"
   },
   "scripts": {
+    "build:start:dev": "yarn build && yarn start:dev",
     "build": "docker-compose build",
     "start:dev": "docker-compose up",
     "start": "NODE_ENV=production node index.js",

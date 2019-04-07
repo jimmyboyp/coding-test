@@ -1,4 +1,4 @@
-version: '3'
+version: '3.5'
 services:
   auth_server:
     build:
@@ -6,21 +6,31 @@ services:
     deploy:
       replicas: 4
     ports:
-      - "4000:4000"
+      - "5000:5000"
+    environment:
+      - USER_DB_USER=${MYSQL_USER}
+      - USER_DB_PASS=${MYSQL_PASSWORD}
+      - USER_DB_DATABASE=${MYSQL_DATABASE}
+    networks:
+      - dazn
+      - default
   session_cache:
     image: redis:5.0.4-alpine
     deploy:
       replicas: 1
     ports:
-      - "4001:6379"
+      - "5001:6379"
   user_database:
     image: mysql:8.0.15
     deploy:
       replicas: 1
     ports:
-      - "4002:3306"
+      - "5002:3306"
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
+networks:
+  dazn:
+    name: custom_network

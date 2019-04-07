@@ -31,6 +31,8 @@ router.post(
 router.post(
   '/session/check',
   function sessionHandler(ctx, next) {
+    console.log('Is this ever reached?')
+
     const { session } = ctx.cookie || {};
 
     if (session === 'THE_JWT') {
@@ -49,5 +51,11 @@ router.post(
 app.use(bodyParser());
 app.use(cookieParser());
 app.use(router.routes());
+
+app.on('error', (error, ctx) => {
+  console.error(error);
+});
+
+console.info(`App listening on ${port}`);
 
 module.exports = app.listen(port);
