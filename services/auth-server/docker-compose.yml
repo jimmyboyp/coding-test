@@ -1,0 +1,23 @@
+version: '3'
+services:
+  auth_server:
+    build:
+      context: .
+    deploy:
+      replicas: 4
+    ports:
+      - "4000:4000"
+  session_cache:
+    image: redis:5.0.4-alpine
+    deploy:
+      replicas: 1
+    ports:
+      - "4001:6379"
+  user_database:
+    image: mysql:8.0.15
+    deploy:
+      replicas: 1
+    ports:
+      - "4002:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=would_normally_obtain_from_env_file
