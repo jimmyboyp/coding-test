@@ -5,7 +5,8 @@ const app = new koa();
 function responseHandler(ctx, next) {
   ctx.cookies.set('session', 'THE_JWT');
   ctx.status = 204;
-  return next()
+
+  return next();
 }
 
 app.use(responseHandler);

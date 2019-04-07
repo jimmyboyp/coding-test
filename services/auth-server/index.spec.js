@@ -16,7 +16,12 @@ describe('Auth Server', () => {
       // Mock the mysql2 lib response here to return data for user
       // Mock jsonwebtoken package to return an expected JWT
 
-      const response = await request(server).post('/login');
+      const response = await request(server)
+        .post('/login')
+        .send({
+          username: 'john',
+          password: 'johns_password'
+        });
 
       expect(response.status).toEqual(204);
       expect(response.headers['set-cookie'][0]).toMatch(/session=THE_JWT/);
