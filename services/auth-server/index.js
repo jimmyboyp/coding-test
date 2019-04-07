@@ -31,7 +31,8 @@ router.post(
     const { session } = ctx.cookie;
 
     if (session === 'THE_JWT') {
-      ctx.status = 204;
+      ctx.status = 200;
+      ctx.body = { userHash: 'HASH_OF_USERNAME' };
     } else {
       ctx.set('WWW-Authenticate', 'Dazn');
       ctx.status = 401;
