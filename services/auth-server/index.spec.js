@@ -64,8 +64,8 @@ describe('Auth Server', () => {
         .post('/session/check')
         .set('Cookie', ['session=THE_JWT'])
 
-      expect(response.status).toEqual(204);
-      // expect() // returns a simple hash for the username
+      expect(response.status).toEqual(200);
+      expect(JSON.parse(response.text)).toEqual({ userHash: 'HASH_OF_USERNAME' });
     });
 
     it('returns a response indicating there is no existing login session for the user', async () => {
