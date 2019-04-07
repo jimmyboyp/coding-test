@@ -39,7 +39,7 @@ describe('Auth Server', () => {
 
       expect(response.status).toEqual(401);
       expect(response.res.headers['www-authenticate']).toEqual('Basic realm="Dazn"');
-      expect(JSON.parse(response.text)).toEqual({ error: 'Failed to authenticate.' });
+      expect(response.body).toEqual({ error: 'Failed to authenticate.' });
     });
 
     it('does not authenticate a non-existent user', async () => {
@@ -54,7 +54,7 @@ describe('Auth Server', () => {
 
       expect(response.status).toEqual(401);
       expect(response.res.headers['www-authenticate']).toEqual('Basic realm="Dazn"');
-      expect(JSON.parse(response.text)).toEqual({ error: 'Failed to authenticate.' });
+      expect(response.body).toEqual({ error: 'Failed to authenticate.' });
     });
   });
 
@@ -67,7 +67,7 @@ describe('Auth Server', () => {
         .set('Cookie', ['session=THE_JWT'])
 
       expect(response.status).toEqual(200);
-      expect(JSON.parse(response.text)).toEqual({ userHash: 'HASH_OF_USERNAME' });
+      expect(response.body).toEqual({ userHash: 'HASH_OF_USERNAME' });
     });
 
     it('returns a response indicating there is no existing login session for the user', async () => {
@@ -79,7 +79,7 @@ describe('Auth Server', () => {
 
       expect(response.status).toEqual(401);
       expect(response.res.headers['www-authenticate']).toEqual('Basic realm="Dazn"');
-      expect(JSON.parse(response.text)).toEqual({ error: 'No active session found for this user.' });
+      expect(response.body).toEqual({ error: 'No active session found for this user.' });
     });
 
     it('returns a response indicating there is no existing login session for the user (no cookie)', async () => {
@@ -90,7 +90,7 @@ describe('Auth Server', () => {
 
       expect(response.status).toEqual(401);
       expect(response.res.headers['www-authenticate']).toEqual('Basic realm="Dazn"');
-      expect(JSON.parse(response.text)).toEqual({ error: 'No active session found for this user.' });
+      expect(response.body).toEqual({ error: 'No active session found for this user.' });
     });
   });
 
