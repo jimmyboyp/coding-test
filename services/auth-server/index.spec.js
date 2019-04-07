@@ -79,12 +79,22 @@ describe('Auth Server', () => {
       expect(response.res.headers['www-authenticate']).toEqual('Dazn')
     });
   });
+
+  it('should return 404 for non-existent routes', async () => {
+    const responseOne = await request(server)
+      .post('/session')
+      .set('Cookie', ['session=THE_JWT'])
+
+    expect(responseOne.status).toEqual(404);
+
+    const responseTwo = await request(server)
+      .post('/logon')
+      .send({
+        username: 'not_a_user',
+        password: 'not_a_password'
+      });
+
+    expect(responseTwo.status).toEqual(404);
+  });
 });
 
-it('should return 404 for non-existent routes', async () => {
-  const response = await request(server)
-    .post('/session/check')
-    .set('Cookie', ['session=NOT_THE_JWT'])
-
-  expect(response.status).toEqual(404);
-});
