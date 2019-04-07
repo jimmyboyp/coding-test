@@ -1,20 +1,37 @@
 const axios = require('axios');
 const request = require('supertest');
+const redis = require('redis');
 
-const server = require('./index');
+let mockRedisClient = {
+  get: () => { console.log('get') },
+  set: () => { console.log('set') }
+};
+
+jest.mock('redis', () => ({
+  createClient: () => mockRedisClient
+}));
+
+const server = require('./index')
 
 describe('Stream Management Server', () => {
   afterAll(() => {
     server.close();
   });
 
-  describe('Authorisation', () => {
-    it.skip('authorises a user to stream an event when concurrent streams are less than 3', async () => {
+  describe.skip('Authorisation', () => {
+    it('authorises a user to stream an event when concurrent streams are less than 3', async () => {
       // Mock the redis lib response here to return concurrent stream data for user
-
       const axiosPost = axios.post;
-
       axios.post = jest.fn(() => Promise.resolve({ status: 204 }));
+
+      mockRedisClient = {
+        get: (_, callback) => {
+          callback(null, ['EVENT_ID_1', 'EVENT_ID_2'])
+        },
+        set: () => {}
+      }
+
+      // redis.createClient().get('', () => {});
 
       const response = await request(server)
         .post('/authorized/check')
@@ -63,7 +80,7 @@ describe('Stream Management Server', () => {
     });
   });
 
-  it.skip('should return 404 for non-existent routes', async () => {
+  it('should return 404 for non-existent routes', async () => {
     const responseOne = await request(server)
       .post('/authorized')
       .set('Cookie', ['session=THE_JWT'])

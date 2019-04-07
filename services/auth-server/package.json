@@ -16,7 +16,8 @@
     "koa-bodyparser": "^4.2.1",
     "koa-cookie": "^1.0.0",
     "koa-router": "^7.4.0",
-    "mysql2": "^1.6.5"
+    "mysql2": "^1.6.5",
+    "redis": "^2.8.0"
   },
   "devDependencies": {
     "jest": "^24.7.1",

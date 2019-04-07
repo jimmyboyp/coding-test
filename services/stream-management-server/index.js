@@ -1,14 +1,26 @@
 const Koa = require('koa');
 const Router = require('koa-router');
-const axios = require('axios')
+const axios = require('axios');
+const redis = require('redis');
 
 const {
   authAPI,
-  app: { port }
+  app: {
+    port: appPort
+  },
+  eventStreamCache: {
+    host,
+    port: eventStreamCachePort
+  }
 } = require('./config');
 
 const app = new Koa();
 const router = new Router();
+
+const client = redis.createClient({
+  host,
+  port: eventStreamCachePort
+});
 
 function setCtxHeaders(ctx, headers) {
   Object.keys(headers)
@@ -26,16 +38,20 @@ router.post(
       } = await axios.post(`${authAPI}/session/check`); // Need to pass request cookies
 
       if (status === 204) {
-        // check Redis for no. concurrent streams using hashed userID returned by auth server
-        const concurrentStreams = 2;
+        const concurrentStreams = await new Promise((resolve, reject) => {
+          client.get(data.userHash, (error, value) => {
+            if (error) reject(error);
+            resolve(value);
+          });
+        });
 
-        // if (concurrentStreams < 3) {
-        //   ctx.status = status;
-        // } else {
-        //   ctx.set('WWW-Authenticate', 'Basic realm="Dazn"');
-        //   ctx.body = { error: 'Maximum number of concurrent streams reached.' };
-        //   ctx.status = 401;
-        // }
+        if (concurrentStreams < 3) {
+          ctx.status = status;
+        } else {
+          ctx.set('WWW-Authenticate', 'Basic realm="Dazn"');
+          ctx.body = { error: 'Maximum number of concurrent streams reached.' };
+          ctx.status = 401;
+        }
       } else {
         ctx.status = status;
         ctx.body = data;
@@ -54,4 +70,4 @@ router.post(
 
 app.use(router.routes());
 
-module.exports = app.listen(port);
+module.exports = app.listen(appPort);
