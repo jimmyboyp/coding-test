@@ -6,8 +6,6 @@ const cookieParser = require('koa-cookie').default;
 const app = new Koa();
 const router = new Router();
 
-router.use(cookieParser());
-
 router.post(
   '/login',
   function authHandler(ctx, next) {
@@ -43,6 +41,7 @@ router.post(
 );
 
 app.use(bodyParser());
+app.use(cookieParser());
 app.use(router.routes());
 
 module.exports = app.listen(3000);
