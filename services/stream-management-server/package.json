@@ -11,6 +11,12 @@
     "npm": "^6.9.0",
     "node": "^10.15.3"
   },
+  "dependencies": {
+    "axios": "^0.18.0",
+    "koa": "^2.7.0",
+    "koa-cookie": "^1.0.0",
+    "koa-router": "^7.4.0"
+  },
   "devDependencies": {
     "jest": "^24.7.1",
     "supertest": "^4.0.2"
@@ -20,10 +26,5 @@
     "start:dev": "NODE_ENV=development node index.js",
     "test": "jest",
     "test:watch": "jest --watch --onlyChanged"
-  },
-  "dependencies": {
-    "koa": "^2.7.0",
-    "koa-cookie": "^1.0.0",
-    "koa-router": "^7.4.0"
   }
 }
