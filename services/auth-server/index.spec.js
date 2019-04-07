@@ -80,3 +80,11 @@ describe('Auth Server', () => {
     });
   });
 });
+
+it('should return 404 for non-existent routes', async () => {
+  const response = await request(server)
+    .post('/session/check')
+    .set('Cookie', ['session=NOT_THE_JWT'])
+
+  expect(response.status).toEqual(404);
+});
