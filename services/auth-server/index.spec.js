@@ -38,7 +38,8 @@ describe('Auth Server', () => {
         });
 
       expect(response.status).toEqual(401);
-      expect(response.res.headers['www-authenticate']).toEqual('Dazn')
+      expect(response.res.headers['www-authenticate']).toEqual('Basic realm="Dazn"');
+      expect(JSON.parse(response.text)).toEqual({ error: 'Failed to authenticate.' });
     });
 
     it('does not authenticate a non-existent user', async () => {
@@ -52,7 +53,8 @@ describe('Auth Server', () => {
         });
 
       expect(response.status).toEqual(401);
-      expect(response.res.headers['www-authenticate']).toEqual('Dazn')
+      expect(response.res.headers['www-authenticate']).toEqual('Basic realm="Dazn"');
+      expect(JSON.parse(response.text)).toEqual({ error: 'Failed to authenticate.' });
     });
   });
 
@@ -73,17 +75,29 @@ describe('Auth Server', () => {
 
       const response = await request(server)
         .post('/session/check')
-        .set('Cookie', ['session=NOT_THE_JWT'])
+        .set('Cookie', ['session=NOT_THE_JWT']);
 
       expect(response.status).toEqual(401);
-      expect(response.res.headers['www-authenticate']).toEqual('Dazn')
+      expect(response.res.headers['www-authenticate']).toEqual('Basic realm="Dazn"');
+      expect(JSON.parse(response.text)).toEqual({ error: 'No active session found for this user.' });
+    });
+
+    it('returns a response indicating there is no existing login session for the user (no cookie)', async () => {
+      // Mock the redis lib response here to return no session data for user
+
+      const response = await request(server)
+        .post('/session/check');
+
+      expect(response.status).toEqual(401);
+      expect(response.res.headers['www-authenticate']).toEqual('Basic realm="Dazn"');
+      expect(JSON.parse(response.text)).toEqual({ error: 'No active session found for this user.' });
     });
   });
 
   it('should return 404 for non-existent routes', async () => {
     const responseOne = await request(server)
       .post('/session')
-      .set('Cookie', ['session=THE_JWT'])
+      .set('Cookie', ['session=THE_JWT']);
 
     expect(responseOne.status).toEqual(404);
 
