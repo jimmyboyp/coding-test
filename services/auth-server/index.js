@@ -15,7 +15,8 @@ router.post(
       ctx.cookies.set('session', 'THE_JWT');
       ctx.status = 204;
     } else {
-      ctx.set('WWW-Authenticate', 'Dazn');
+      ctx.set('WWW-Authenticate', 'Basic realm="Dazn"');
+      ctx.body = { error: 'Failed to authenticate.' };
       ctx.status = 401;
     }
 
@@ -26,13 +27,14 @@ router.post(
 router.post(
   '/session/check',
   function sessionHandler(ctx, next) {
-    const { session } = ctx.cookie;
+    const { session } = ctx.cookie || {};
 
     if (session === 'THE_JWT') {
       ctx.status = 200;
       ctx.body = { userHash: 'HASH_OF_USERNAME' };
     } else {
-      ctx.set('WWW-Authenticate', 'Dazn');
+      ctx.set('WWW-Authenticate', 'Basic realm="Dazn"');
+      ctx.body = { error: 'No active session found for this user.' };
       ctx.status = 401;
     }
 
