@@ -3,6 +3,10 @@ const Router = require('koa-router');
 const bodyParser = require('koa-bodyparser');
 const cookieParser = require('koa-cookie').default;
 
+const {
+  app: { port }
+} = require('./config');
+
 const app = new Koa();
 const router = new Router();
 
@@ -46,4 +50,4 @@ app.use(bodyParser());
 app.use(cookieParser());
 app.use(router.routes());
 
-module.exports = app.listen(3000);
+module.exports = app.listen(port);

@@ -20,5 +20,8 @@
     "start:dev": "NODE_ENV=development node index.js",
     "test": "jest",
     "test:watch": "jest --watch --onlyChanged"
+  },
+  "dependencies": {
+    "koa": "^2.7.0"
   }
 }
