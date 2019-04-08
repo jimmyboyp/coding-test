@@ -36,28 +36,28 @@ router.post(
     if (username === 'john' && password === 'johns_password') {
       try {
         await cache.set(sessionCache, username, SESSION_EXPIRY_SECONDS, SESSION_EXPIRY_SECONDS);
+
+        try {
+          const token = await jwt.sign(
+            jsonwebtoken,
+            { iss: 'dazn', sub: username },
+            JWT_SECRET,
+            { expiresIn: SESSION_EXPIRY_SECONDS }
+          );
+
+          ctx.cookies.set('session', token);
+          ctx.status = 204;
+        } catch (error) {
+          console.error('Unable to sign jwt:', error);
+
+          ctx.set('WWW-Authenticate', 'Basic realm="Dazn"');
+          ctx.body = { error: 'Failed to authenticate.' };
+          ctx.status = 401;
+
+          // Log event to message queue
+        }
       } catch (error) {
         console.error('Unable to save session:', error);
-
-        ctx.set('WWW-Authenticate', 'Basic realm="Dazn"');
-        ctx.body = { error: 'Failed to authenticate.' };
-        ctx.status = 401;
-
-        // Log event to message queue
-      }
-
-      try {
-        const token = await jwt.sign(
-          jsonwebtoken,
-          { iss: 'dazn', sub: username },
-          JWT_SECRET,
-          { expiresIn: SESSION_EXPIRY_SECONDS }
-        );
-
-        ctx.cookies.set('session', token);
-        ctx.status = 204;
-      } catch (error) {
-        console.error('Unable to sign jwt:', error);
 
         ctx.set('WWW-Authenticate', 'Basic realm="Dazn"');
         ctx.body = { error: 'Failed to authenticate.' };
