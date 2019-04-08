@@ -1,3 +1,5 @@
+const { createHash } = require('crypto');
+
 const returnResults = (resolve, reject) => (error, result) => {
   if (error) reject(error);
   resolve(result);
@@ -27,5 +29,6 @@ module.exports = {
         client.set(key, value, 'EX', expiry, returnResults(resolve, reject))
       ))
     )
-  }
+  },
+  hash: (string) => createHash('md5').update(string).digest("hex")
 };

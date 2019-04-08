@@ -5,7 +5,7 @@ const bodyParser = require('koa-bodyparser');
 const jsonwebtoken = require('jsonwebtoken');
 const cookieParser = require('koa-cookie').default;
 
-const { jwt, cache } = require('./helpers');
+const { jwt, cache, hash } = require('./helpers');
 
 const {
   app: {
@@ -49,7 +49,7 @@ router.post(
       try {
         const token = await jwt.sign(
           jsonwebtoken,
-          { iss: 'dazn', sub: username},
+          { iss: 'dazn', sub: username },
           JWT_SECRET,
           { expiresIn: SESSION_EXPIRY_SECONDS }
         );
@@ -77,16 +77,22 @@ router.post(
 
 router.post(
   '/session/check',
-  function sessionHandler(ctx, next) {
+  async function sessionHandler(ctx, next) {
     const { session } = ctx.cookie || {};
 
-    if (session === 'THE_JWT') {
+    try {
+      const { sub } = await jwt.verify(jsonwebtoken, session, JWT_SECRET);
+
       ctx.status = 200;
-      ctx.body = { userHash: 'HASH_OF_USERNAME' };
-    } else {
+      ctx.body = { userHash: hash(sub) };
+    } catch (error) {
+      console.error('Unable to verify jwt:', error);
+
       ctx.set('WWW-Authenticate', 'Basic realm="Dazn"');
       ctx.body = { error: 'No active session found for this user.' };
       ctx.status = 401;
+
+      // Log event to message queue
     }
 
     return next();
