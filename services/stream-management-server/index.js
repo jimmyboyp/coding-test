@@ -35,7 +35,18 @@ router.post(
         data,
         status,
         headers
-      } = await axios.post(`${authAPI}/session/check`); // Need to pass request cookies
+      } = await axios.post(
+        `${authAPI}/session/check`,
+        {
+          username: 'john',
+          password: 'johns_password'
+        },
+        {
+          headers: {
+            Cookie: 'session=THE_JWT'
+          }
+        }
+      );
 
       if (status === 204) {
         const concurrentStreams = await new Promise((resolve, reject) => {
@@ -73,22 +84,5 @@ app.use(router.routes());
 app.on('error', (error, ctx) => {
   console.error(error);
 });
-
-console.info(`App listening on ${appPort}`);
-
-axios.post(
-  `${authAPI}/session/check`,
-  {
-    username: 'john',
-    password: 'johns_password'
-  },
-  {
-    headers: {
-      Cookie: 'session=THE_JWT'
-    }
-  }
-)
-.then(() => console.log('axios request made'))
-.catch((err) => console.error('axios error', err))
 
 module.exports = app.listen(appPort);

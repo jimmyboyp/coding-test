@@ -1,23 +1,70 @@
 const Koa = require('koa');
+const redis = require('redis');
 const Router = require('koa-router');
 const bodyParser = require('koa-bodyparser');
+const jsonwebtoken = require('jsonwebtoken');
 const cookieParser = require('koa-cookie').default;
 
+const { jwt, cache } = require('./helpers');
+
 const {
-  app: { port }
+  app: {
+    APP_PORT,
+    JWT_SECRET,
+    SESSION_EXPIRY_SECONDS,
+  },
+  sessionCache: {
+    SESSION_CACHE_HOST,
+    SESSION_CACHE_PORT
+  }
 } = require('./config');
 
 const app = new Koa();
 const router = new Router();
 
+const sessionCache = redis.createClient({
+  host: SESSION_CACHE_HOST,
+  port: SESSION_CACHE_PORT
+});
+
 router.post(
   '/login',
-  function authHandler(ctx, next) {
-    const { password } = ctx.request.body;
+  async function authHandler(ctx, next) {
+    const { username, password } = ctx.request.body;
 
-    if (password === 'johns_password') {
-      ctx.cookies.set('session', 'THE_JWT');
-      ctx.status = 204;
+    // Eventually replace this with a database call
+    if (username === 'john' && password === 'johns_password') {
+      try {
+        await cache.set(sessionCache, username, SESSION_EXPIRY_SECONDS, SESSION_EXPIRY_SECONDS);
+      } catch (error) {
+        console.error('Unable to save session:', error);
+
+        ctx.set('WWW-Authenticate', 'Basic realm="Dazn"');
+        ctx.body = { error: 'Failed to authenticate.' };
+        ctx.status = 401;
+
+        // Log event to message queue
+      }
+
+      try {
+        const token = await jwt.sign(
+          jsonwebtoken,
+          { iss: 'dazn', sub: username},
+          JWT_SECRET,
+          { expiresIn: SESSION_EXPIRY_SECONDS }
+        );
+
+        ctx.cookies.set('session', token);
+        ctx.status = 204;
+      } catch (error) {
+        console.error('Unable to sign jwt:', error);
+
+        ctx.set('WWW-Authenticate', 'Basic realm="Dazn"');
+        ctx.body = { error: 'Failed to authenticate.' };
+        ctx.status = 401;
+
+        // Log event to message queue
+      }
     } else {
       ctx.set('WWW-Authenticate', 'Basic realm="Dazn"');
       ctx.body = { error: 'Failed to authenticate.' };
@@ -31,8 +78,6 @@ router.post(
 router.post(
   '/session/check',
   function sessionHandler(ctx, next) {
-    console.log('Is this ever reached?')
-
     const { session } = ctx.cookie || {};
 
     if (session === 'THE_JWT') {
@@ -56,6 +101,6 @@ app.on('error', (error, ctx) => {
   console.error(error);
 });
 
-console.info(`App listening on ${port}`);
+console.info(`App listening on ${APP_PORT}`);
 
-module.exports = app.listen(port);
+module.exports = app.listen(APP_PORT);
