@@ -1,16 +1,16 @@
 const Koa = require('koa');
-const Router = require('koa-router');
 const axios = require('axios');
 const redis = require('redis');
+const Router = require('koa-router');
 
 const {
-  authAPI,
+  AUTH_API,
   app: {
-    port: appPort
+    APP_PORT
   },
   eventStreamCache: {
-    host,
-    port: eventStreamCachePort
+    EVENT_STREAM_CACHE_HOST,
+    EVENT_STREAM_CACHE_PORT
   }
 } = require('./config');
 
@@ -18,8 +18,8 @@ const app = new Koa();
 const router = new Router();
 
 const client = redis.createClient({
-  host,
-  port: eventStreamCachePort
+  host: EVENT_STREAM_CACHE_HOST,
+  port: EVENT_STREAM_CACHE_PORT
 });
 
 function setCtxHeaders(ctx, headers) {
@@ -36,7 +36,7 @@ router.post(
         status,
         headers
       } = await axios.post(
-        `${authAPI}/session/check`,
+        `${AUTH_API}/session/check`,
         {
           username: 'john',
           password: 'johns_password'
@@ -85,4 +85,4 @@ app.on('error', (error, ctx) => {
   console.error(error);
 });
 
-module.exports = app.listen(appPort);
+module.exports = app.listen(APP_PORT);

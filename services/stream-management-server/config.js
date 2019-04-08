@@ -1,10 +1,10 @@
 module.exports = {
   app: {
-    port: process.env.PORT || 4000
+    APP_PORT: process.env.APP_PORT || 4000
   },
   eventStreamCache: {
-    host: process.env.EVENT_STREAM_CACHE_HOST || 'concurrent_stream_cache',
-    port: process.env.EVENT_STREAM_CACHE_PORT || 6379,
+    EVENT_STREAM_CACHE_HOST: process.env.EVENT_STREAM_CACHE_HOST || 'localhost',
+    EVENT_STREAM_CACHE_PORT: process.env.EVENT_STREAM_CACHE_PORT || 6379,
   },
-  authAPI: process.env.AUTH_API || 'http://localhost:5000'
+  AUTH_API: process.env.AUTH_API || 'http://localhost:5000'
 }
