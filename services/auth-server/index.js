@@ -83,13 +83,19 @@ router.post(
     try {
       const { sub } = await jwt.verify(jsonwebtoken, session, JWT_SECRET);
 
-      ctx.status = 200;
-      ctx.body = { userHash: hash(sub) };
+      const sessionFromCache = await cache.get(sessionCache, sub);
+
+      if (sessionFromCache) {
+        ctx.status = 200;
+        ctx.body = { userHash: hash(sub) };
+      } else {
+        throw new Error('No active session found for this user.');
+      }
     } catch (error) {
-      console.error('Unable to verify jwt:', error);
+      console.error('Session check failed:', error);
 
       ctx.set('WWW-Authenticate', 'Basic realm="Dazn"');
-      ctx.body = { error: 'No active session found for this user.' };
+      ctx.body = { error: error.message };
       ctx.status = 401;
 
       // Log event to message queue
