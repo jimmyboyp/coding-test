@@ -224,4 +224,18 @@ Any time after that should return a `401` with a message indicating the user has
 
 To retest this, hit the `/flushall` route with a `GET` request.
 
-If either of these endpoints seems to be failing, please get in touch 😄
+### Test 7
+
+Leave the `AUTH_SERVER` `/authorized/check` POST request for over an hour, then reattempt with the same session cookie.
+
+### Result
+
+Token will have expired.
+
+```json
+{
+  "error": "jwt expired"
+}
+```
+
+If any of these endpoints seems to be failing, please get in touch 😄
