@@ -33,31 +33,43 @@ $ yarn nuke:deps    # remove deps
 $ yarn test         # run tests
 ```
 
-However, with a correctly constructed Dockerfile builds should be rapid, so development can be done utilising the containerised services.
+However, with a correctly constructed Dockerfile the builds should be rapid, so development can be done utilising the containerised services.
+
+Due to containers defined in different `docker-compose.yml` files not being able to communicate over the defined `bridge` network, they cannot be started locally as I originally desired (i.e. using the following commands in each directory and everything simply working).
 
 ```
 $ yarn build        # builds images using docker-compose
 $ yarn start:dev    # spins up containers using docker-compose
 ```
 
-Both commands above can be run in one go with:
+Or both commands in one go with:
 
 ```
 $ yarn build:start:dev
 ```
 
-Unfortunately, I couldn't resolve the issue where services defined within different `docker-compose.yml` files could not communicate over the same named `bridge` network.
+The best way to get them working locally is going to `services/auth-server` and running:
+```sh
+$ yarn build:start:dev
+```
+Then going to `services/stream-management-server` and running:
+```sh
+$ docker run redis -p 4001:6379
 
-This prevented progress with some of the remaining tasks.
+# 4001 is the external port as defined in the docker-compose.yml
+
+$ yarn
+$ yarn start
+```
 
 ## Deploying
 
-Because of the time constraints of this coding challenge I didn't get round to creating a deployment pipeline.
+Unfortunately I didn't get round to creating a deployment process/pipeline, but it could operate as described here.
 
-If these projects were to be used, _small_, single-concern pull requests should be made on the chosen source control management service (Github / Bitbucket). Commits made to the remote branch should fire a webhook that can be used to trigger the following CI pipeline stages on the chosen CI system:
+_Small_, single-concern pull requests should be made on the chosen source control management service (Github / Bitbucket). Commits made to the remote branch should fire a webhook that can be used to trigger the following CI pipeline stages on the chosen CI system:
 - **PR Linting** - used to take away the overhead in reviews about PR / commit conventions.
-  - This can be implemented with Danger CI to ensure conformance to specific commit message formats, analyse package version updates and associate these with areas of the service to focus testing on etc.
-  - These warnings, errors and hints can be displayed on the PR itself via webhooks or simply via output in the console
+  - this can be implemented with Danger CI to ensure conformance to specific commit message formats, analyse package version updates and associate these with areas of the service to focus testing on etc.
+  - these warnings, errors and hints can be displayed on the PR itself via webhooks or simply via output in the console
 - **Build & Test** - this will use the Dockerfile to build an image that tests can then be run in
   - if the image fails to build, the CI pipeline errors and merging is blocked for the PR
   - if the image builds, but one of the test phases fails, the CI pipeline should again error
@@ -83,15 +95,16 @@ Once the Build & Test stage is complete, and the PR has the required developer/t
 ## Scalability Strategy
 
 - Each service should exist in its own Docker image
-  - Dockerisation means the services become platform-agnostic, so the company won't be tied to a particular cloud-service vendor
-- Databases and Redis instances should also exist in their own containers
-  - This decouples these instances from the web server (and each other) and will improve the horizontal scalability of the services
-  - Hot services/instances can therfore be scaled up with ease
+  - Dockerisation means the services become more easily platform-agnostic, so the company won't be tied to a particular cloud-service vendor
+- Database and Redis instances should also exist in their own containers
+  - This decouples these instances from the web server (and each other) and will improve the horizontal scalability of each services (they won't have to scale proportionally with each other)
+  - Hot services/instances can therefore be scaled up with ease
 - A cluster orchestration tool can be used to effecively manage containers
+  - For this coding challenge, I deployed the images from Docker Hub using AWS ECS, but preferably Kubernetes would be used to get comparable features whilst preventing vendor lock-in.
 - Managed services should be preferred as this takes support burden off the business
-- Message queues should be used for fire-and-forget situations (like logging) so that services are decoupled from each other (in regards to agreed mechanisms of transferring data between services) - consumers can subscribe or ignore as they please without having to code for new services that wish to connect or conform to multiple bespoke communication formats
-- Where data storage is concerned, consider sharding (e.g. cluster in Redis and assign hash ranges to specific instances, similar setup with databases)
-  - Also, when it comes to databases, one table per database isn't necessarily the worst idea. It gets harder to create complex queries as data is distributed, however atomicity can still be achieved by way of acknowledgements and centralised message queues.
+- Message queues should be used for fire-and-forget situations (like logging) so that services are decoupled from each other - consumers can subscribe or ignore as they please without having to code for new services that wish to connect or conform to multiple bespoke communication formats
+- Where data storage is concerned, consider sharding (e.g. Redis clustering, assigning hash ranges to specific instances, similar setup with databases)
+  - Also, when it comes to databases, one table per database isn't necessarily the worst idea. It may get harder to create complex queries for data between tables as that data would be distributed, however atomicity can still be achieved by way of acknowledgements and centralised message queues.
 - Cache where possible. Try to reduce hits through to inner-servers without degrading the perceived responsiveness of the system.
 
 ## Architecture
