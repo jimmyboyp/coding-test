@@ -107,13 +107,16 @@ Once the Build & Test stage is complete, and the PR has the required developer/t
   - Also, when it comes to databases, one table per database isn't necessarily the worst idea. It may get harder to create complex queries for data between tables as that data would be distributed, however atomicity can still be achieved by way of acknowledgements and centralised message queues.
 - Cache where possible. Try to reduce hits through to inner-servers without degrading the perceived responsiveness of the system.
 
-## Architecture
+# 🚨🚨 Architecture 🚨🚨
 
-Please see the [architecture](ARCHITECTURE.md) for information on the envisioned services and how they interconnect, along with the process of how this idea of the architecture came to be.
+Please see the
+### [ARCHITECTURE.md](ARCHITECTURE.md)
+for information on the envisioned services and how they interconnect, along with the process of how this idea of the architecture came to be.
 
 ## Testing AWS-Deployed API
 
 `AUTH_SERVER`               = `52.14.133.151:5000`
+
 `STREAM_MANAGEMENT_SERVER`  = `52.15.190.97:4000`
 
 The overview of where these services live in the hierarchy is in the ARCHITECTURE file.
