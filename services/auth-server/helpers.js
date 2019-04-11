@@ -28,6 +28,11 @@ module.exports = {
       new Promise((resolve, reject) => (
         client.set(key, value, 'EX', expiry, returnResults(resolve, reject))
       ))
+    ),
+    flushall: (client) => (
+      new Promise((resolve, reject) => (
+        client.flushall(returnResults(resolve, reject))
+      ))
     )
   },
   hash: (string) => createHash('md5').update(string).digest("hex")

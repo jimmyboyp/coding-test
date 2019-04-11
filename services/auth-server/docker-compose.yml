@@ -8,12 +8,13 @@ services:
     ports:
       - "5000:5000"
     environment:
+      - SESSION_CACHE_HOST=docker.for.mac.localhost
+      - SESSION_CACHE_PORT=5001
+      - USER_DB_HOST=docker.for.mac.localhost
+      - USER_DB_PORT=5002
       - USER_DB_USER=${MYSQL_USER}
       - USER_DB_PASS=${MYSQL_PASSWORD}
       - USER_DB_DATABASE=${MYSQL_DATABASE}
-    networks:
-      - dazn
-      - default
   session_cache:
     image: redis:5.0.4-alpine
     deploy:
@@ -31,6 +32,3 @@ services:
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
-networks:
-  dazn:
-    name: custom_network

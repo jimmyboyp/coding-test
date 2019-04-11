@@ -2,7 +2,10 @@ const Koa = require('koa');
 const axios = require('axios');
 const redis = require('redis');
 const Router = require('koa-router');
+const bodyParser = require('koa-bodyparser');
 const cookieParser = require('koa-cookie').default;
+
+const { cache } = require('./helpers');
 
 const {
   AUTH_API,
@@ -36,6 +39,7 @@ function convertCookieObjectToString(cookies) {
 router.post(
   '/authorized/check',
   async function authorizeCheckHandler(ctx, next) {
+    const { eventID } = ctx.request.body;
     const sessionCheckUrl = `${AUTH_API}/session/check`;
     const cookieString = convertCookieObjectToString(ctx.cookie);
     const options = { headers: { Cookie: cookieString } };
@@ -48,27 +52,10 @@ router.post(
       } = await axios.post(sessionCheckUrl, {}, options);
 
       if (status === 200) {
-        const concurrentStreams = await new Promise((resolve, reject) => {
-          eventStreamCache.get(data.userHash, (error, value) => {
-            if (error) reject(error);
-            console.log('EVENT STREAM CACHE GET: value')
-            console.log(value)
-            resolve(value);
-          });
-        });
+        const concurrentStreams = await cache.getListLength(eventStreamCache, data.userHash);
 
         if (concurrentStreams < 3) {
-          await new Promise((resolve, reject) => {
-            // const expiry = 300; // 5 mins in seconds
-            // eventStreamCache.set(key, value, 'EX', expiry, (error, value) => {
-            //   if (error) reject(error);
-
-            //   console.log('EVENT STREAM CACHE SETTING:', value)
-            //   console.log(value)
-            //   resolve(value);
-            // });
-            resolve()
-          });
+          await cache.pushToList(eventStreamCache, data.userHash, eventID);
 
           ctx.status = status;
           ctx.body = data;
@@ -98,10 +85,29 @@ router.post(
       // Log error
     }
 
-    await next();
+    return next();
   }
 );
 
+// Helper route for testing the API
+router.get(
+  '/flushall',
+  async function flushCache(ctx, next) {
+    try {
+      await cache.flushall(eventStreamCache);
+      ctx.status = 204;
+    } catch (error) {
+      console.error('Unable to flush cache:', error);
+
+      ctx.body = { error: error.message };
+      ctx.status = 500;
+    }
+
+    return next();
+  }
+);
+
+app.use(bodyParser());
 app.use(cookieParser());
 app.use(router.routes());
 

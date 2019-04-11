@@ -105,6 +105,23 @@ router.post(
   }
 );
 
+// Helper route for testing the API
+router.get(
+  '/flushall',
+  async function flushCache(ctx, next) {
+    try {
+      await cache.flushall(sessionCache);
+    } catch (error) {
+      console.error('Unable to flush cache:', error);
+
+      ctx.body = { error: error.message };
+      ctx.status = 500;
+    }
+
+    return next();
+  }
+);
+
 app.use(bodyParser());
 app.use(cookieParser());
 app.use(router.routes());
