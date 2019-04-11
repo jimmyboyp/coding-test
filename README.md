@@ -110,3 +110,115 @@ Once the Build & Test stage is complete, and the PR has the required developer/t
 ## Architecture
 
 Please see the [architecture](ARCHITECTURE.md) for information on the envisioned services and how they interconnect, along with the process of how this idea of the architecture came to be.
+
+## Testing AWS-Deployed API
+
+`AUTH_SERVER`               = `52.14.133.151:5000`
+`STREAM_MANAGEMENT_SERVER`  = `52.15.190.97:4000`
+
+The overview of where these services live in the hierarchy is in the ARCHITECTURE file.
+
+A fake user `john` can be used for these tests, which will first be against the `AUTH_SERVER`.
+
+### Test 1
+
+In a REST client, set up a `POST` request with the following body against the `/login` route.
+
+```json
+{
+	"username": "john",
+	"password": "johns_password"
+}
+```
+
+Ensure your client has auto-added the `Content-Type`: `application/json` header.
+
+### Result
+
+This should return a `204` (no body content, the session comes back in a cookie).
+
+Copy the returned `Set-Cookie` value and save it for the next step.
+
+### Test 2
+
+Change the username or password in the body.
+
+### Result
+
+This should return a `401` as a non-existent user will not authorised to stream any event.
+
+### Test 3
+
+Set up another `POST` request against the `/session/check` route.
+
+Add the session cookie from before (easiest to paste the entirety of the previously copied value into a `Cookie` header).
+
+### Result
+
+This should return a `200` and return a JSON containing a hashed version of the username, for use by the Stream Management Service as a cache key (discussed in ARCHITECTURE.md).
+
+```json
+{
+  "userHash": "527bd5b5d689e2c32ae974c6229ff785"
+}
+```
+
+### Test 4
+
+Change any character in the session JWT string.
+
+### Result
+
+This should return a `401` as the token will not have been verified.
+
+
+The next tests are for requests to the `STREAM_MANAGEMENT_SERVER`.
+
+
+### Test 5
+
+Set up a `POST` request against the `/authorized/check` route.
+
+Add an arbitrary `eventID` in the JSON body (this ID will become a list value set against the hashed-username cache key)
+
+```json
+{
+	"eventID": "AN_EVENT_ID"
+}
+```
+
+Add the session cookie from before (easiest to paste the entirety of the previously copied value into a `Cookie` header) and verify the client has added the `Content-Type`: `application/json` header.
+
+### Result
+
+This should return a `200` and return the same JSON as before, containing a hashed version of the username.
+
+```json
+{
+  "userHash": "527bd5b5d689e2c32ae974c6229ff785"
+}
+```
+
+This is passed back here by the auth server's `/session/check` to allow the request-initiating Stream Service to use when pinging this Stream Management Service (letting it know a user is still streaming an event and keeping the "concurrent event cache" up-to-date).
+
+This pinging could happen directly or via a message queue.
+
+### Test 6
+
+Repeat this request multiple times.
+
+### Result
+
+The subsequent two times should return the same `200` response as before.
+
+Any time after that should return a `401` with a message indicating the user has reached the maximum stream limit.
+
+```json
+{
+  "error": "Maximum number of concurrent streams reached."
+}
+```
+
+To retest this, hit the `/flushall` route with a `GET` request.
+
+If either of these endpoints seems to be failing, please get in touch 😄

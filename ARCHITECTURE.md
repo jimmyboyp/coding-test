@@ -212,6 +212,7 @@ It follows a similar API, and importantly supports parameterised queries to help
   - Ensure services make use of HTTP2 protocol
   - Possibly swap the servers out with Lambda functions for things like auth/session/event stream checking, as these could work out far cheaper for the business
   - Add ESLint / Prettier to standardize the code format and remove this aspect from all code reviews
+  - Security - not exposing everything to everyone via the default security group on AWS - lock down services to an internal-only group, and have the API Gateway be the only public-facing interface
 - [Auth Service]
   - Have this communicate to the MySQL and Redis Docker instances over the default Docker network
   - Complete password hashing / salting mechanism or use OAuth (or equivalent)
